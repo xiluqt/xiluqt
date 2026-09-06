@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Xiluqt offline-first knowledge updater.
 
-Run this once per day using the operating system scheduler. If there is no network,
-no error is fatal: the previous local snapshot remains authoritative for offline use.
-This module intentionally does not train on arbitrary web pages; each connector must
-be added and licensed explicitly.
+Run once per day using the OS scheduler. If there is no network, the previous
+local snapshot remains available. Raw observations are cached; they are not
+silently converted into training labels.
 """
 from __future__ import annotations
 import hashlib,json,pathlib,time,urllib.request
@@ -25,6 +24,14 @@ def main():
             state['sources'][src['id']]={'checked_at':time.time(),'sha256':digest,'ok':True};updated+=1
         except Exception as exc:
             state['sources'][src['id']]={'checked_at':time.time(),'ok':False,'error':type(exc).__name__}
-    state['last_run']=time.time();state['updated']=updated;STATE.write_text(json.dumps(state,indent=2))
-    print(json.dumps({'updated':updated,'sources':len(REGISTRY['sources'])}))
+    connector_ok=None
+    try:
+        import connectors
+        connectors.run()
+        connector_ok=True
+    except Exception as exc:
+        connector_ok=type(exc).__name__
+    state['last_run']=time.time();state['updated']=updated;state['connectors']=connector_ok
+    STATE.write_text(json.dumps(state,indent=2))
+    print(json.dumps({'updated':updated,'sources':len(REGISTRY['sources']),'connectors':connector_ok}))
 if __name__=='__main__':main()
