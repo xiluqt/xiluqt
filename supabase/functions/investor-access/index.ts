@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       const maxUses = Math.max(1, Math.min(1000, Number(body?.max_uses ?? 1)));
       const expiresAt = body?.expires_at ? new Date(body.expires_at).toISOString() : null;
 
-      const { error } = await admin.from("investor_codes").insert({
+      const { error } = await admin.from("investor_access_codes").insert({
         code_hash: codeHash,
         label,
         max_uses: maxUses,
