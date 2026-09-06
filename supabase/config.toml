@@ -1,0 +1,2 @@
+[functions.investor-access]
+verify_jwt = false
