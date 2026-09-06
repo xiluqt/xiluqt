@@ -1,25 +1,38 @@
-# Xiluqt MCP / Plugin API
+# Xiluqt MCP Server
 
-Xiluqt exposes its local intelligence through Model Context Protocol (MCP).
+Production-oriented MCP v2 gateway for Xiluqt movement intelligence.
 
-## Tools
+## Architecture
 
-- `xiluqt_predict_movement` — local movement-risk prediction.
-- `xiluqt_brain_status` — local model/runtime health.
-- `xiluqt_local_reason` — optional local LLM reasoning through Ollama.
+- `server.mjs` — local stdio MCP server.
+- `server-factory.mjs` — shared tool graph used by local and remote transports.
+- `remote-server.mjs` — Streamable HTTP endpoint at `/mcp` plus `/health`.
+- `Dockerfile` — minimal Node 22 production image.
+- `.env.example` — deployment configuration; never commit real secrets.
 
-## Run locally
+The remote gateway is deliberately read-only: prediction, model status, explanation, and optional local-Ollama reasoning. There are no shipment mutations, payments, credential operations, or autonomous external writes.
+
+## Local
 
 ```bash
-cd mcp
 npm install
-node server.mjs
+npm start
 ```
 
-Install Ollama separately if you want the local reasoning tool. Ollama serves its local API at `http://localhost:11434/api` by default.
+## Remote
 
-This MCP server is intentionally local-first. It does not claim to provide live global data while completely offline; fresh external data must first be synchronized and cached by Xiluqt's updater.
+```bash
+npm install
+XILUQT_MCP_TOKEN='long-random-secret' npm run start:remote
+```
 
-## ChatGPT / Codex
+Health: `GET /health`
+MCP: `POST/GET/DELETE /mcp`
 
-Current ChatGPT plugin architecture uses plugins as a package around skills and apps, with MCP as the supported protocol for custom tool integrations. A local MCP server can be tested from supported developer/plugin tooling; a public hosted MCP endpoint is required for remote users. Publication/availability is subject to OpenAI's current plugin/app review and workspace rules.
+The gateway supports optional bearer authentication, host/origin allowlists, request IDs, security headers, bounded request rate, and graceful shutdown. For a public deployment, set `XILUQT_MCP_TOKEN` and keep the token in the hosting provider's secret store.
+
+## ChatGPT connection
+
+OpenAI's current Apps SDK uses MCP for custom apps. In ChatGPT Developer Mode, create a custom app and point it at the deployed `/mcp` endpoint. ChatGPT currently connects to remote MCP servers; a local server is not directly reachable without a supported secure tunnel.
+
+This repository does not itself publish an app into OpenAI's directory; publication remains an account/workspace submission and review process.
