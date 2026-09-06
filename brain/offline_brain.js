@@ -36,3 +36,51 @@
   window.addEventListener('DOMContentLoaded',()=>{installStatus();wireNavigation();['w','c','i','f'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',()=>setTimeout(render,0));});const api=document.getElementById('apiRun');if(api)api.addEventListener('click',()=>setTimeout(render,0));setTimeout(render,0);syncSources();schedule();});
   if(document.readyState!=='loading')setTimeout(wireNavigation,0);
 })();
+
+/* XQ-MARITIME-VISUALS-V1: illustrative ship movement + live route mathematics + maritime livestream */
+(function(){
+  'use strict';
+  function installMaritimeVisuals(){
+    const live=document.getElementById('live');
+    if(!live || document.getElementById('xqMaritimePanel')) return;
+    const style=document.createElement('style');
+    style.textContent=`
+      #xqMaritimePanel{margin-top:14px}.xq-ship-map{height:300px;border-radius:14px;position:relative;overflow:hidden;border:1px solid #145184;background:linear-gradient(160deg,#071b31 0%,#06324b 45%,#031321 100%);box-shadow:inset 0 0 70px #00101f}
+      .xq-gridlines{position:absolute;inset:0;background-image:linear-gradient(#4cc9ff18 1px,transparent 1px),linear-gradient(90deg,#4cc9ff18 1px,transparent 1px);background-size:38px 38px;transform:perspective(450px) rotateX(48deg) scale(1.5);transform-origin:center bottom;opacity:.65}
+      .xq-route{position:absolute;left:9%;right:9%;top:55%;height:3px;background:linear-gradient(90deg,#21e8e0,#278cff,#20e6a1);box-shadow:0 0 14px #21e8e0;transform:rotate(-12deg);transform-origin:left center}
+      .xq-ship{position:absolute;left:12%;top:48%;font-size:27px;filter:drop-shadow(0 0 9px #21e8e0);animation:xqShipMove 9s linear infinite}
+      .xq-ship:after{content:'';position:absolute;width:75px;height:2px;left:-68px;top:17px;background:linear-gradient(90deg,transparent,#21e8e0);box-shadow:0 0 8px #21e8e0}
+      @keyframes xqShipMove{0%{transform:translate(0,0) rotate(-12deg)}50%{transform:translate(58vw,-70px) rotate(-12deg)}100%{transform:translate(0,0) rotate(-12deg)}}
+      .xq-port{position:absolute;padding:6px 8px;border:1px solid #1a5d88;background:#020b15dd;border-radius:9px;font-size:10px;color:#dff6ff}.xq-port.a{left:8%;bottom:17%}.xq-port.b{right:7%;top:18%}
+      .xq-math{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.xq-math-card{padding:11px;border:1px solid #164b76;border-radius:11px;background:#04101e}.xq-math-card small{color:#83a6c7}.xq-math-card b{display:block;margin-top:5px;font-size:16px;color:#eaf6ff}.xq-formula{margin-top:10px;padding:12px;border:1px solid #145184;border-radius:11px;background:#020b16;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;color:#bfe6ff}.xq-live-video{margin-top:12px;border:1px solid #145184;border-radius:14px;overflow:hidden;background:#020a15}.xq-live-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0}.xq-live-note{padding:9px 12px;font-size:10px;color:#83a6c7}.xq-live-badge{display:inline-block;margin-left:7px;color:#20e6a1;border:1px solid #14614d;border-radius:99px;padding:3px 6px}
+      @media(max-width:800px){.xq-ship-map{height:235px}.xq-math{grid-template-columns:1fr 1fr}.xq-ship{animation-name:xqShipMoveMobile}@keyframes xqShipMoveMobile{0%{transform:translate(0,0) rotate(-12deg)}50%{transform:translate(58vw,-45px) rotate(-12deg)}100%{transform:translate(0,0) rotate(-12deg)}}}
+    `;
+    document.head.appendChild(style);
+    const panel=document.createElement('section');panel.id='xqMaritimePanel';panel.className='card';
+    panel.innerHTML=`
+      <div class="eyebrow">MARITIME MOVEMENT VISUAL</div>
+      <h3 style="margin:7px 0">Illustrative vessel route + live mathematics</h3>
+      <p class="muted tiny" style="margin:0 0 10px">A visual demonstration of how Xiluqt can combine route geometry, vessel speed and ETA. The moving ship below is an illustration, not a live AIS vessel position.</p>
+      <div class="xq-ship-map"><div class="xq-gridlines"></div><div class="xq-route"></div><div class="xq-port a">Lagos · Origin</div><div class="xq-port b">Singapore · Destination</div><div class="xq-ship" aria-label="illustrative moving cargo ship">🚢</div></div>
+      <div class="xq-math">
+        <div class="xq-math-card"><small>Route distance</small><b id="xqShipDistance">8,420 km</b></div>
+        <div class="xq-math-card"><small>Vessel speed</small><b id="xqShipSpeed">18 kn</b></div>
+        <div class="xq-math-card"><small>ETA</small><b id="xqShipEta">10.1 days</b></div>
+        <div class="xq-math-card"><small>Progress</small><b id="xqShipProgress">0.0%</b></div>
+      </div>
+      <div class="xq-formula" id="xqShipFormula">ETA = distance ÷ speed → 8,420 km ÷ (18 kn × 1.852 km/h) = 252.7 h ≈ 10.53 days</div>
+      <div class="xq-live-video"><div style="padding:10px 12px;border-bottom:1px solid #12365b"><span class="eyebrow">MARITIME LIVE VIDEO</span><span class="xq-live-badge">LIVE SOURCE</span></div><iframe src="https://www.youtube.com/embed/Gb1wejZyTCU" title="Port of Singapore live shipping webcam" loading="lazy" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe><div class="xq-live-note">Port of Singapore livestream. Availability depends on the broadcaster; this video is external live context, not Xiluqt-owned telemetry.</div></div>`;
+    const footer=live.querySelector('.footer');
+    live.appendChild(panel);
+    let progress=0;
+    function updateMath(){
+      const distance=8420,speedKn=18,speedKmh=speedKn*1.852;
+      progress=(progress+0.12)%100;
+      const remaining=distance*(1-progress/100),hours=remaining/speedKmh,days=hours/24;
+      const d=document.getElementById('xqShipDistance'),s=document.getElementById('xqShipSpeed'),e=document.getElementById('xqShipEta'),p=document.getElementById('xqShipProgress'),f=document.getElementById('xqShipFormula');
+      if(d)d.textContent=distance.toLocaleString()+' km';if(s)s.textContent=speedKn+' kn';if(p)p.textContent=progress.toFixed(1)+'%';if(e)e.textContent=days.toFixed(2)+' days';if(f)f.textContent=`ETA = remaining distance ÷ speed → ${Math.round(remaining).toLocaleString()} km ÷ (${speedKn} kn × 1.852 km/h) = ${hours.toFixed(1)} h ≈ ${days.toFixed(2)} days`;
+    }
+    updateMath();setInterval(updateMath,3000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installMaritimeVisuals);else installMaritimeVisuals();
+})();
