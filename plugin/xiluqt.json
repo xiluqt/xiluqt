@@ -1,19 +1,28 @@
 {
   "name": "Xiluqt",
-  "description": "Local-first logistics intelligence: movement prediction, brain status, and local AI reasoning.",
-  "version": "0.1.0",
-  "mcp": {
-    "command": "node",
-    "args": ["mcp/server.mjs"],
-    "workingDirectory": "."
+  "description": "AI logistics intelligence for movement prediction, operational risk, explainability and local reasoning.",
+  "version": "0.2.0",
+  "architecture": {
+    "protocol": "MCP",
+    "localTransport": "stdio",
+    "hostedTransport": "streamable-http",
+    "hostedPath": "/mcp",
+    "healthPath": "/health"
   },
   "tools": [
     "xiluqt_predict_movement",
     "xiluqt_brain_status",
-    "xiluqt_local_reason"
+    "xiluqt_local_reason",
+    "xiluqt_risk_explanation"
   ],
   "privacy": {
     "localReasoning": "When Ollama is configured at localhost, prompts are processed locally.",
-    "riskModel": "Movement prediction runs locally and does not require a cloud model."
+    "riskModel": "Movement prediction runs locally and does not require a cloud model.",
+    "training": "Only validated outcome labels should be used as supervised training targets."
+  },
+  "publication": {
+    "target": "ChatGPT Plugins Directory",
+    "submissionModel": "OpenAI Apps SDK + MCP",
+    "status": "submission-ready architecture; publication requires OpenAI review"
   }
 }
