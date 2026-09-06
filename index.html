@@ -4,7 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Xiluqt — Global Movement Intelligence</title>
+<style>html,body{margin:0;min-height:100%;background:#05070d;color:#fff;font-family:system-ui,sans-serif}#loading{display:grid;place-items:center;min-height:100vh;letter-spacing:.08em}iframe{border:0;width:100%;height:100vh;display:block}</style>
 </head>
 <body>
-<!-- Xiluqt investor prototype: source maintained in the repository root. -->
-<!-- The full application markup is deployed from this file. -->
+<div id="loading">XILUQT • LOADING INTELLIGENCE…</div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(async()=>{
+  const zipUrl='https://raw.githubusercontent.com/xiluqt/xiluqt/main/Xiluqt_Investor_Prototype_PERFECT.zip';
+  try{
+    const r=await fetch(zipUrl,{cache:'no-store'});
+    if(!r.ok) throw new Error('Prototype archive unavailable');
+    const z=await JSZip.loadAsync(await r.arrayBuffer());
+    const entry=z.file(/Xiluqt_Investor_Prototype_PERFECT\/index\.html$/i)[0];
+    if(!entry) throw new Error('Prototype index not found');
+    const html=await entry.async('string');
+    document.open(); document.write(html); document.close();
+  }catch(e){
+    document.getElementById('loading').innerHTML='Xiluqt prototype could not load. <a href="https://github.com/xiluqt/xiluqt" style="color:#54d8ff">Open repository</a>.';
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
