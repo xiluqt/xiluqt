@@ -1,0 +1,19 @@
+{
+  "name": "Xiluqt",
+  "description": "Local-first logistics intelligence: movement prediction, brain status, and local AI reasoning.",
+  "version": "0.1.0",
+  "mcp": {
+    "command": "node",
+    "args": ["mcp/server.mjs"],
+    "workingDirectory": "."
+  },
+  "tools": [
+    "xiluqt_predict_movement",
+    "xiluqt_brain_status",
+    "xiluqt_local_reason"
+  ],
+  "privacy": {
+    "localReasoning": "When Ollama is configured at localhost, prompts are processed locally.",
+    "riskModel": "Movement prediction runs locally and does not require a cloud model."
+  }
+}
