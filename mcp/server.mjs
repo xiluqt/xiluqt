@@ -1,6 +1,6 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import * as z from 'zod';
+import { McpServer } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
+import * as z from 'zod/v4';
 
 const MODEL = {
   version: 'XQ-Risk-DigitalTwin-v0.2',
@@ -39,51 +39,72 @@ async function ollamaChat(model, prompt) {
   return data.message?.content || '';
 }
 
-const server = new McpServer({ name: 'xiluqt', version: '0.1.0' });
+function buildServer() {
+  const server = new McpServer({ name: 'xiluqt', version: '0.2.0' });
 
-server.registerTool('xiluqt_predict_movement', {
-  title: 'Xiluqt Predict Movement',
-  description: 'Predict logistics movement risk using the local Xiluqt risk model. No cloud model is required.',
-  inputSchema: z.object({
-    weather_stress: z.number().min(0).max(100),
-    congestion: z.number().min(0).max(100),
-    inventory_pressure: z.number().min(0).max(100),
-    signal_confidence: z.number().min(0).max(100)
-  }),
-  annotations: { readOnlyHint: true }
-}, async ({ weather_stress, congestion, inventory_pressure, signal_confidence }) => {
-  const result = predict(weather_stress, congestion, inventory_pressure, signal_confidence);
-  return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }], structuredContent: result };
-});
+  server.registerTool('xiluqt_predict_movement', {
+    title: 'Xiluqt Predict Movement',
+    description: 'Predict logistics movement risk using the local Xiluqt risk model. No cloud model is required.',
+    inputSchema: z.object({
+      weather_stress: z.number().min(0).max(100),
+      congestion: z.number().min(0).max(100),
+      inventory_pressure: z.number().min(0).max(100),
+      signal_confidence: z.number().min(0).max(100)
+    }),
+    annotations: { readOnlyHint: true }
+  }, async ({ weather_stress, congestion, inventory_pressure, signal_confidence }) => {
+    const result = predict(weather_stress, congestion, inventory_pressure, signal_confidence);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  });
 
-server.registerTool('xiluqt_brain_status', {
-  title: 'Xiluqt Brain Status',
-  description: 'Return the local Xiluqt brain configuration and offline capabilities.',
-  annotations: { readOnlyHint: true }
-}, async () => {
-  const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-  let ollama = false;
-  try { const r = await fetch(`${ollamaUrl}/api/tags`); ollama = r.ok; } catch {}
-  const result = { model_version: MODEL.version, local_risk_model: true, ollama_available: ollama, offline_capable: true };
-  return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }], structuredContent: result };
-});
+  server.registerTool('xiluqt_brain_status', {
+    title: 'Xiluqt Brain Status',
+    description: 'Return the local Xiluqt brain configuration and offline capabilities.',
+    annotations: { readOnlyHint: true }
+  }, async () => {
+    const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+    let ollama = false;
+    try { const r = await fetch(`${ollamaUrl}/api/tags`); ollama = r.ok; } catch {}
+    const result = { model_version: MODEL.version, local_risk_model: true, ollama_available: ollama, offline_capable: true, protocol: 'MCP v2' };
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  });
 
-server.registerTool('xiluqt_local_reason', {
-  title: 'Xiluqt Local Reasoning',
-  description: 'Ask a locally running Ollama model to reason over a logistics question. Data stays on the local machine when Ollama is local.',
-  inputSchema: z.object({
-    prompt: z.string().min(1),
-    model: z.string().default('gemma3')
-  }),
-  annotations: { readOnlyHint: true }
-}, async ({ prompt, model }) => {
-  try {
-    const answer = await ollamaChat(model, `You are Xiluqt, a logistics intelligence system. Be precise, distinguish evidence from inference, and never invent live data.\n\n${prompt}`);
-    return { content: [{ type: 'text', text: answer }], structuredContent: { model, local: true, answer } };
-  } catch (error) {
-    return { content: [{ type: 'text', text: `Local reasoning unavailable: ${error.message}` }], isError: true };
-  }
-});
+  server.registerTool('xiluqt_local_reason', {
+    title: 'Xiluqt Local Reasoning',
+    description: 'Ask a locally running Ollama model to reason over a logistics question. Data stays on the local machine when Ollama is local.',
+    inputSchema: z.object({ prompt: z.string().min(1), model: z.string().default('gemma3') }),
+    annotations: { readOnlyHint: true }
+  }, async ({ prompt, model }) => {
+    try {
+      const answer = await ollamaChat(model, `You are Xiluqt, a logistics intelligence system. Be precise, distinguish evidence from inference, and never invent live data.\n\n${prompt}`);
+      return { content: [{ type: 'text', text: answer }] };
+    } catch (error) {
+      return { content: [{ type: 'text', text: `Local reasoning unavailable: ${error.message}` }], isError: true };
+    }
+  });
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
+  server.registerTool('xiluqt_risk_explanation', {
+    title: 'Xiluqt Risk Explanation',
+    description: 'Explain which input factors are driving the current movement-risk score.',
+    inputSchema: z.object({
+      weather_stress: z.number().min(0).max(100),
+      congestion: z.number().min(0).max(100),
+      inventory_pressure: z.number().min(0).max(100),
+      signal_confidence: z.number().min(0).max(100)
+    }),
+    annotations: { readOnlyHint: true }
+  }, async (input) => {
+    const factors = [
+      ['weather_stress', input.weather_stress, MODEL.weights[0]],
+      ['congestion', input.congestion, MODEL.weights[1]],
+      ['inventory_pressure', input.inventory_pressure, MODEL.weights[2]],
+      ['signal_degradation', 100 - input.signal_confidence, MODEL.weights[3]]
+    ].map(([name, value, weight]) => ({ name, value, contribution: +(value * weight / 100).toFixed(3) }))
+      .sort((a, b) => b.contribution - a.contribution);
+    return { content: [{ type: 'text', text: JSON.stringify({ model_version: MODEL.version, factors }, null, 2) }] };
+  });
+
+  return server;
+}
+
+await serveStdio(buildServer);
