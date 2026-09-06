@@ -1,6 +1,6 @@
 {
   "name": "@xiluqt/mcp-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Xiluqt logistics intelligence MCP server for local and hosted ChatGPT apps.",
@@ -10,9 +10,9 @@
     "start:remote": "node remote-server.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/express": "2.0.0",
     "@modelcontextprotocol/node": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
-    "zod": "^4.4.2",
-    "express": "^5.1.0"
+    "zod": "^4.4.2"
   }
 }
