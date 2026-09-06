@@ -1,0 +1,85 @@
+name: Add Xiluqt auth gate
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  add-auth-gate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Add auth template
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          if 'XQ-AUTH-GATE-V1' in s:
+              raise SystemExit(0)
+          auth = r'''<!-- XQ-AUTH-GATE-V1 -->
+          <style>
+          #xqAuthGate{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at 80% 15%,#1769c9 0,#061a36 34%,#020812 75%);color:#eef7ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:auto}
+          #xqAuthGate *{box-sizing:border-box}.xq-auth-shell{width:min(980px,100%);min-height:620px;display:grid;grid-template-columns:1fr 1fr;border:1px solid #1b75c8;border-radius:28px;overflow:hidden;background:#041326;box-shadow:0 30px 100px #000b}.xq-auth-form{padding:42px;display:flex;flex-direction:column;justify-content:center}.xq-auth-brand{display:flex;align-items:center;gap:11px;margin-bottom:34px;font-weight:900;font-size:23px}.xq-auth-logo{margin-left:auto;width:170px;height:170px;border-radius:42px;display:grid;place-items:center;background:#020b18;border:1px solid #237bc9;box-shadow:0 0 70px #278cff55}.xq-auth-logo img{width:145px;height:145px;object-fit:contain}.xq-auth-side{padding:44px;background:linear-gradient(145deg,#082e5b,#06182f 58%,#031020);display:flex;flex-direction:column;justify-content:center}.xq-auth-side h1{font-size:43px;line-height:1.02;margin:12px 0}.xq-auth-eyebrow{font-size:10px;letter-spacing:1.8px;color:#65c9ff;font-weight:800}.xq-auth-muted{color:#89a9c8;font-size:12px;line-height:1.55}.xq-auth-tabs{display:flex;gap:6px;padding:5px;border:1px solid #15476f;border-radius:12px;background:#020b17;margin-bottom:22px}.xq-auth-tabs button{flex:1;border:0;background:transparent;color:#82a2bf;padding:10px;border-radius:8px;font-weight:800;cursor:pointer}.xq-auth-tabs button.active{background:#0b62bd;color:#fff}.xq-auth-field{margin:12px 0}.xq-auth-field label{display:block;color:#8eacc8;font-size:11px;margin-bottom:6px}.xq-auth-field input{width:100%;padding:13px 14px;border-radius:11px;border:1px solid #19517e;background:#020b17;color:#fff;outline:none}.xq-auth-field input:focus{border-color:#2b99ff;box-shadow:0 0 0 3px #278cff22}.xq-auth-primary{width:100%;border:0;border-radius:11px;padding:13px;background:linear-gradient(90deg,#0874df,#12a5d8);color:#fff;font-weight:900;cursor:pointer;margin-top:8px}.xq-auth-secondary{border:1px solid #1a5d8c;background:#08233d;color:#dff3ff;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.xq-auth-message{min-height:20px;margin-top:10px;font-size:11px;color:#8fb2d0}.xq-auth-code{letter-spacing:7px;text-align:center;font-size:22px;font-weight:900}.xq-auth-badge{display:inline-flex;width:max-content;border:1px solid #176a8c;background:#062a38;color:#63e8db;border-radius:99px;padding:6px 9px;font-size:10px;margin-top:14px}.xq-auth-points{display:grid;gap:10px;margin-top:22px}.xq-auth-point{border:1px solid #155083;border-radius:12px;padding:12px;background:#031325;color:#b9d4ea;font-size:11px}.xq-auth-legal{font-size:9px;color:#6887a3;margin-top:14px;line-height:1.5}
+          @media(max-width:760px){#xqAuthGate{padding:0}.xq-auth-shell{min-height:100vh;border:0;border-radius:0;grid-template-columns:1fr}.xq-auth-side{display:none}.xq-auth-form{padding:26px 20px}.xq-auth-brand{margin-bottom:25px}.xq-auth-logo{width:62px;height:62px;border-radius:18px}.xq-auth-logo img{width:54px;height:54px}}
+          </style>
+          <div id="xqAuthGate" aria-label="Xiluqt account access">
+            <div class="xq-auth-shell">
+              <section class="xq-auth-form">
+                <div class="xq-auth-brand"><span>Xiluqt</span><div class="xq-auth-logo"><img src="./xiluqt-x.svg" alt="Xiluqt logo"></div></div>
+                <div class="xq-auth-tabs"><button id="xqSignInTab" class="active">Sign in</button><button id="xqSignUpTab">Create account</button></div>
+                <form id="xqAuthForm" autocomplete="on">
+                  <div id="xqNameWrap" class="xq-auth-field" style="display:none"><label>FULL NAME</label><input id="xqName" autocomplete="name" placeholder="Your name"></div>
+                  <div class="xq-auth-field"><label>EMAIL ADDRESS</label><input id="xqEmail" type="email" autocomplete="email" required placeholder="you@company.com"></div>
+                  <div class="xq-auth-field"><label>PASSWORD</label><input id="xqPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Minimum 8 characters"></div>
+                  <div id="xqConfirmWrap" class="xq-auth-field" style="display:none"><label>CONFIRM PASSWORD</label><input id="xqConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat password"></div>
+                  <button class="xq-auth-primary" type="submit" id="xqAuthSubmit">Enter Xiluqt →</button>
+                </form>
+                <div id="xqAuthMessage" class="xq-auth-message"></div>
+                <div id="xqVerifyBox" style="display:none">
+                  <div class="xq-auth-eyebrow">EMAIL VERIFICATION</div><h3 style="margin:6px 0">Verify your email</h3>
+                  <p class="xq-auth-muted">Enter the 6-digit verification code sent to <b id="xqVerifyEmail"></b>.</p>
+                  <div class="xq-auth-field"><input id="xqVerifyCode" class="xq-auth-code" inputmode="numeric" maxlength="6" placeholder="000000"></div>
+                  <button class="xq-auth-primary" id="xqVerifyBtn">Verify & enter system →</button>
+                  <button class="xq-auth-secondary" id="xqResendBtn" style="margin-top:8px;width:100%">Resend verification</button>
+                  <p class="xq-auth-legal">Prototype access gate: a real email-delivery/authentication provider must be connected before this becomes production-grade identity verification.</p>
+                </div>
+              </section>
+              <aside class="xq-auth-side"><div class="xq-auth-eyebrow">GLOBAL MOVEMENT INTELLIGENCE</div><h1>Know what will move before it moves.</h1><p class="xq-auth-muted">Secure your workspace before entering the Xiluqt decision layer — movement prediction, live operational signals and API intelligence.</p><span class="xq-auth-badge">FREE API ACCESS · VERIFIED ACCOUNT</span><div class="xq-auth-points"><div class="xq-auth-point">⚡ Real-time movement prediction</div><div class="xq-auth-point">🌍 Earth, satellite, map & coastal context</div><div class="xq-auth-point">⌘ Bring-your-own API connection</div></div></aside>
+            </div>
+          </div>
+          <script>
+          (function(){
+            var gate=document.getElementById('xqAuthGate'),form=document.getElementById('xqAuthForm'),signin=document.getElementById('xqSignInTab'),signup=document.getElementById('xqSignUpTab'),nameWrap=document.getElementById('xqNameWrap'),confirmWrap=document.getElementById('xqConfirmWrap'),submit=document.getElementById('xqAuthSubmit'),msg=document.getElementById('xqAuthMessage'),verify=document.getElementById('xqVerifyBox'),emailEl=document.getElementById('xqVerifyEmail'),code=document.getElementById('xqVerifyCode'),verifyBtn=document.getElementById('xqVerifyBtn'),resend=document.getElementById('xqResendBtn');
+            var mode='signin', pending=null;
+            function setMode(m){mode=m;signin.classList.toggle('active',m==='signin');signup.classList.toggle('active',m==='signup');nameWrap.style.display=m==='signup'?'block':'none';confirmWrap.style.display=m==='signup'?'block':'none';submit.textContent=m==='signup'?'Create account →':'Enter Xiluqt →';msg.textContent=''}
+            signin.onclick=function(){setMode('signin')};signup.onclick=function(){setMode('signup')};
+            function hash(s){var h=0;for(var i=0;i<s.length;i++)h=((h<<5)-h+s.charCodeAt(i))|0;return String(h>>>0)}
+            function getUsers(){try{return JSON.parse(localStorage.getItem('xq-auth-users')||'{}')}catch(e){return {}}}
+            function saveUsers(u){localStorage.setItem('xq-auth-users',JSON.stringify(u))}
+            function openSystem(){localStorage.setItem('xq-auth-session','1');gate.remove()}
+            function makeCode(){return String(Math.floor(100000+Math.random()*900000))}
+            form.onsubmit=function(e){e.preventDefault();var email=document.getElementById('xqEmail').value.trim().toLowerCase(),pass=document.getElementById('xqPassword').value,users=getUsers();if(!/^\S+@\S+\.\S+$/.test(email)){msg.textContent='Enter a valid email address.';return}if(pass.length<8){msg.textContent='Password must be at least 8 characters.';return}
+              if(mode==='signup'){var conf=document.getElementById('xqConfirm').value;if(pass!==conf){msg.textContent='Passwords do not match.';return}if(users[email]){msg.textContent='Account already exists. Sign in instead.';return}var c=makeCode();users[email]={name:document.getElementById('xqName').value.trim(),hash:hash(pass),verified:false,code:c};saveUsers(users);pending=email;emailEl.textContent=email;verify.style.display='block';form.style.display='none';msg.textContent='Verification code prepared for this prototype: '+c;}
+              else{if(!users[email]||users[email].hash!==hash(pass)){msg.textContent='Incorrect email or password.';return}if(!users[email].verified){pending=email;emailEl.textContent=email;verify.style.display='block';form.style.display='none';msg.textContent='Your account still needs email verification.';return}openSystem()}
+            };
+            verifyBtn.onclick=function(){var users=getUsers(),u=users[pending];if(!u||code.value.trim()!==u.code){msg.textContent='Invalid verification code.';return}u.verified=true;delete u.code;saveUsers(users);openSystem()};
+            resend.onclick=function(){var users=getUsers(),u=users[pending];if(!u)return;u.code=makeCode();saveUsers(users);msg.textContent='New verification code prepared for this prototype: '+u.code};
+            if(localStorage.getItem('xq-auth-session')==='1')gate.remove();
+          })();
+          </script>
+          <!-- /XQ-AUTH-GATE-V1 -->'''
+          s=s.replace('</body>', auth+'\n</body>')
+          p.write_text(s,encoding='utf-8')
+      - name: Commit auth gate
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Add Xiluqt account login and verification gate'
+          git push
