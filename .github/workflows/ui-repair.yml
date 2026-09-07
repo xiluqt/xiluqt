@@ -9,17 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inject movement-risk repair module
+      - name: Inject runtime UI controllers
         shell: python
         run: |
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          marker='XQ-UI-REPAIR-V1'
-          if marker in s:
-              raise SystemExit(0)
-          tag='<!-- XQ-UI-REPAIR-V1 --><script src="./brain/ui_repair.js" defer></script><!-- /XQ-UI-REPAIR-V1 -->'
-          s=s.replace('</head>',tag+'\n</head>',1)
+          tags={
+            'XQ-UI-REPAIR-V1':'<script src="./brain/ui_repair.js" defer></script>',
+            'XQ-UI-NAV-V1':'<script src="./brain/ui_navigation.js" defer></script>'
+          }
+          for marker,tag in tags.items():
+            if marker not in s:
+              s=s.replace('</head>',f'<!-- {marker} -->{tag}<!-- /{marker} -->\n</head>',1)
           p.write_text(s,encoding='utf-8')
       - name: Commit repair
         shell: bash
@@ -27,5 +29,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'fix: restore movement risk trend runtime'
+          git diff --cached --quiet || git commit -m 'fix: repair live predict api navigation'
           git push
