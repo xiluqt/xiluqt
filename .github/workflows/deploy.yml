@@ -27,9 +27,12 @@ jobs:
           grep -q 'id="home"' index.html
           grep -q 'id="predict"' index.html
           grep -q 'id="live"' index.html
-          grep -q 'id="api"' index.html
+          grep -q 'href="#api"' index.html
           grep -q 'API DEPLOYMENT' index.html
           ! grep -q 'XQ-AUTH-GATE-V1' index.html
+          test ! -e sw.js
+          test ! -e brain/ui_repair.js
+          test ! -e brain/ui_navigation.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
