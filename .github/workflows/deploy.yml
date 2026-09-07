@@ -1,19 +1,15 @@
 name: Deploy Xiluqt to GitHub Pages
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 permissions:
   contents: read
   pages: write
   id-token: write
-
 concurrency:
   group: pages-${{ github.run_id }}
   cancel-in-progress: false
-
 jobs:
   deploy:
     environment:
@@ -23,6 +19,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prototype smoke test
+        run: |
+          test -s index.html
+          test -s brain/core.js
+          test -s brain/model.json
+          grep -q 'id="home"' index.html
+          grep -q 'id="predict"' index.html
+          grep -q 'id="live"' index.html
+          grep -q 'id="api"' index.html
+          grep -q 'API DEPLOYMENT' index.html
+          ! grep -q 'XQ-AUTH-GATE-V1' index.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
