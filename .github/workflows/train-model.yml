@@ -1,0 +1,21 @@
+name: Xiluqt model training
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * 1'
+permissions:
+  contents: write
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Train compact risk model
+        run: python3 brain/train.py
+      - name: Commit model
+        run: |
+          git config user.name 'xiluqt-training-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add brain/model.json
+          git diff --cached --quiet || git commit -m 'train: refresh compact movement risk model'
+          git push
