@@ -1,1 +1,0 @@
-(()=>{const page=document.querySelector('section#api.page');if(page){page.id='apiPage';document.querySelectorAll('a[href="#api"]').forEach(a=>a.href='#apiPage');} })();
