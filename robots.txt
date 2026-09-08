@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://xiluqt.github.io/xiluqt/sitemap.xml
