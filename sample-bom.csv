@@ -1,0 +1,4 @@
+part,manufacturer,product,lifecycle,lead_time,suppliers
+MEM-AX19,Aster Memory,Edge Controller X1,NRND,13,1
+PMIC-T48,Tera Power,Edge Controller X1,Active,8,2
+MCU-H743,Horizon Micro,Gateway G2,Active,6,3
