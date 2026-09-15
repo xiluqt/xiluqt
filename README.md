@@ -1,6 +1,6 @@
 # Xiluqt Silicon Intelligence
 
-Xiluqt is a production-oriented web application for semiconductor dependency, lifecycle, sourcing and product-impact intelligence.
+Xiluqt is a production-oriented, installable web application for semiconductor dependency, lifecycle, sourcing and product-impact intelligence.
 
 ## Product promise
 
@@ -16,9 +16,19 @@ The application turns a customer's bill of materials into a dependency intellige
 - Product-level impact propagation.
 - Dependency graph visualisation.
 - Search and risk-band filtering.
-- AI-style analyst grounded in the structured workspace.
-- Responsive desktop/mobile interface with animated interactions.
+- Analyst interface grounded in the structured workspace.
+- Responsive desktop/mobile interface with mobile bottom navigation.
+- **Installable PWA** with standalone display and offline shell caching.
 - Xiluqt brand mark used throughout the product.
+
+## Add Xiluqt to a phone
+
+Open the deployed GitHub Pages site in a supported browser.
+
+- **iPhone/iPad:** Safari → Share → **Add to Home Screen**.
+- **Android:** use the browser's **Install app / Add to Home screen** option when offered.
+
+The app is designed to open in a standalone window after installation. BOM data remains in the device/browser workspace by default.
 
 ## Data boundary
 
@@ -35,5 +45,7 @@ Long-term infrastructure graph:
 ## Engineering principle
 
 Demo/workspace data is explicitly distinguishable from authoritative external evidence. Risk scores are prioritisation signals, not guaranteed forecasts of loss or supply interruption.
+
+The full product requirements and non-negotiable instructions are maintained in [`XILUQT_PRODUCT_SPEC.md`](./XILUQT_PRODUCT_SPEC.md).
 
 **Built from Nigeria. Designed for the world.**
